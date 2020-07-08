@@ -1,19 +1,18 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 # type: ignore
-import errno
-
 import codecs
 import distutils.cmd
 import distutils.log
+import errno
 import os
 import re
 import shutil
 import subprocess
 from distutils import cmd
-from os.path import abspath, basename, dirname, exists, isdir, join, realpath, normpath
+from os.path import abspath, basename, dirname, exists, isdir, join, normpath, realpath
 from typing import Any, List, Optional
 
-from setuptools.command import build_py, sdist, develop
+from setuptools.command import build_py, develop, sdist
 
 
 def find_version(*file_paths):

@@ -7,11 +7,11 @@ from setuptools import find_packages, setup
 
 from build_helpers import (
     ANTLRCommand,
-    CleanCommand,
-    find_version,
-    SDistCommand,
     BuildPyCommand,
+    CleanCommand,
     Develop,
+    SDistCommand,
+    find_version,
 )
 
 with pathlib.Path("requirements/requirements.txt").open() as requirements_txt:

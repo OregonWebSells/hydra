@@ -1,4 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+import sys
 import warnings
 from dataclasses import dataclass
 from enum import Enum
@@ -6,7 +7,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from antlr4 import TerminalNode, Token
 from antlr4.error.ErrorListener import ErrorListener
-import sys
+
 from hydra.errors import HydraException
 
 try:
@@ -17,6 +18,7 @@ try:
     )
     from hydra.grammar.gen.OverrideParser import OverrideParser
     from hydra.grammar.gen.OverrideVisitor import OverrideVisitor
+
 except ModuleNotFoundError:
     print(
         "Error importing generated parsers, run `python setup.py antlr` to regenerate."
