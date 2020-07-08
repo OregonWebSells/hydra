@@ -5,7 +5,14 @@ import pathlib
 import pkg_resources
 from setuptools import find_packages, setup
 
-from build_helpers import ANTLRCommand, CleanCommand, find_version
+from build_helpers import (
+    ANTLRCommand,
+    CleanCommand,
+    find_version,
+    SDistCommand,
+    BuildPyCommand,
+    Develop,
+)
 
 with pathlib.Path("requirements/requirements.txt").open() as requirements_txt:
     install_requires = [
@@ -18,10 +25,11 @@ with open("README.md", "r") as fh:
     LONG_DESC = fh.read()
     setup(
         cmdclass={
-            # Clean temporary files
-            "clean": CleanCommand,
-            # Generate parsers
             "antlr": ANTLRCommand,
+            "clean": CleanCommand,
+            "sdist": SDistCommand,
+            "build_py": BuildPyCommand,
+            "develop": Develop,
         },
         name="hydra-core",
         version=find_version("hydra", "__init__.py"),

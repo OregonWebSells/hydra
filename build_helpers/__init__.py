@@ -5,12 +5,15 @@ import distutils.cmd
 import distutils.log
 import os
 import re
+import setuptools
 import shutil
 import subprocess
 import sys
 from distutils import cmd, dir_util
 from os.path import abspath, basename, dirname, exists, isdir, join
 from typing import Any, List
+
+from setuptools.command import build_py, sdist, develop
 
 
 def find_version(*file_paths):
@@ -20,6 +23,33 @@ def find_version(*file_paths):
     if version_match:
         return version_match.group(1)
     raise RuntimeError("Unable to find version string.")
+
+
+class BuildPyCommand(build_py.build_py):
+    """Custom build command."""
+
+    def run(self):
+        if not self.dry_run:
+            self.run_command("antlr")
+        build_py.build_py.run(self)
+
+
+class Develop(develop.develop):
+    """Custom build command."""
+
+    def run(self):
+        if not self.dry_run:
+            self.run_command("antlr")
+        develop.develop.run(self)
+
+
+class SDistCommand(sdist.sdist):
+    """Custom build command."""
+
+    def run(self):
+        if not self.dry_run:
+            self.run_command("antlr")
+        sdist.run(self)
 
 
 class CleanCommand(cmd.Command):

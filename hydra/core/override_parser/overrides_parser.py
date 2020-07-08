@@ -6,15 +6,22 @@ from typing import Any, Dict, List, Optional, Union
 
 from antlr4 import TerminalNode, Token
 from antlr4.error.ErrorListener import ErrorListener
-
+import sys
 from hydra.errors import HydraException
-from hydra.grammar.gen.OverrideLexer import (
-    CommonTokenStream,
-    InputStream,
-    OverrideLexer,
-)
-from hydra.grammar.gen.OverrideParser import OverrideParser
-from hydra.grammar.gen.OverrideVisitor import OverrideVisitor
+
+try:
+    from hydra.grammar.gen.OverrideLexer import (
+        CommonTokenStream,
+        InputStream,
+        OverrideLexer,
+    )
+    from hydra.grammar.gen.OverrideParser import OverrideParser
+    from hydra.grammar.gen.OverrideVisitor import OverrideVisitor
+except ModuleNotFoundError:
+    print(
+        "Error importing generated parsers, run `python setup.py antlr` to regenerate."
+    )
+    sys.exit(1)
 
 
 class Quote(Enum):
