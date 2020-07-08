@@ -1,5 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 # type: ignore
+import errno
+
 import codecs
 import distutils.cmd
 import distutils.log
@@ -25,31 +27,40 @@ def find_version(*file_paths):
     raise RuntimeError("Unable to find version string.")
 
 
-class BuildPyCommand(build_py.build_py):
-    """Custom build command."""
+def run_antlr(self):
+    try:
+        self.announce("Generating parsers with antlr4", level=distutils.log.FATAL)
+        self.run_command("antlr")
+    except OSError as e:
+        if e.errno == errno.ENOENT:
+            msg = f"| Unable to generate parsers, is java installed? {e} |"
+            msg = "=" * len(msg) + "\n" + msg + "\n" + "=" * len(msg)
+            self.announce(f"{msg}", level=distutils.log.FATAL)
+            exit(1)
+        else:
+            # Something else went wrong while trying to run `wget`
+            raise
 
+
+class BuildPyCommand(build_py.build_py):
     def run(self):
         if not self.dry_run:
-            self.run_command("antlr")
+            run_antlr(self)
         build_py.build_py.run(self)
 
 
 class Develop(develop.develop):
-    """Custom build command."""
-
     def run(self):
         if not self.dry_run:
-            self.run_command("antlr")
+            run_antlr(self)
         develop.develop.run(self)
 
 
 class SDistCommand(sdist.sdist):
-    """Custom build command."""
-
     def run(self):
         if not self.dry_run:
-            self.run_command("antlr")
-        sdist.run(self)
+            run_antlr(self)
+        sdist.sdist.run(self)
 
 
 class CleanCommand(cmd.Command):
@@ -87,15 +98,16 @@ class CleanCommand(cmd.Command):
     def run(self):
         delete_patterns = [
             ".eggs",
+            "hydra/grammar/gen",
             ".egg-info",
             ".pytest_cache",
-            "build",
+            "build/",
             "dist",
             "__pycache__",
             ".pyc",
         ]
         deletion_list = CleanCommand.find(
-            ".", includes=delete_patterns, excludes=["\\.nox/.*"]
+            ".", includes=delete_patterns, excludes=["\\.nox/.*", ".gitignore"]
         )
 
         for f in deletion_list:
@@ -123,47 +135,23 @@ class ANTLRCommand(distutils.cmd.Command):
         """Run command."""
         root_dir = abspath(dirname(__file__))
         project_root = abspath(dirname(basename(__file__)))
-        try:
-            """
-            This is a nasty hack to work around setuptools inability to handle copying files from the parent dir.
-            When we build we copy the parent grammar and bin directories here.
-            And we use them.
-            In addition, when we create the source dist (sdist) tox is using, we add those same into it -
-            because this is what the tox build is getting access to.
-            finally, this code need to work both in the tox mode where bin and grammar are in
-            the source tree and in normal mode when they are not, so it copies them here only if
-            they are not already here and finally deletes them.
-            """
-            copied_bin = False
-            copied_grammar = False
-            if exists("bin"):
-                dir_util.copy_tree("bin", "bin")
-                copied_bin = True
-            if exists("../grammar"):
-                dir_util.copy_tree("../grammar", "grammar")
-                copied_grammar = True
+        for grammar in [
+            "hydra/grammar/Override.g4",
+        ]:
+            command = [
+                "java",
+                "-jar",
+                join(root_dir, "bin/antlr-4.8-complete.jar"),
+                f"-Dlanguage=Python3",
+                "-o",
+                join(project_root, "hydra/grammar/gen/"),
+                "-Xexact-output-dir",
+                "-visitor",
+                join(project_root, grammar),
+            ]
 
-            pyver = 3
-            for grammar in [
-                "hydra/grammar/Override.g4",
-            ]:
-                command = [
-                    sys.executable,
-                    join(root_dir, "bin/antlr4"),
-                    f"-Dlanguage=Python{pyver}",
-                    "-o",
-                    join(project_root, "hydra/grammar/gen/"),
-                    "-Xexact-output-dir",
-                    "-visitor",
-                    join(project_root, grammar),
-                ]
-                self.announce(
-                    f"Generating parser for Python {pyver}: {command}",
-                    level=distutils.log.INFO,
-                )
-                subprocess.check_call(command)
-        finally:
-            if copied_bin:
-                shutil.rmtree("bin", ignore_errors=True)
-            if copied_grammar:
-                shutil.rmtree("grammar", ignore_errors=True)
+            self.announce(
+                f"Generating parser for Python3: {command}", level=distutils.log.INFO,
+            )
+
+            subprocess.check_call(command)
