@@ -69,23 +69,39 @@ class Key:
 
 @dataclass
 class Override:
+    # The type of the override (Change, Add or Remove config option or config group choice)
     type: OverrideType
+
     # the config-group or config dot-path
     key_or_group: str
 
+    # The type of the value.
+    # ELEMENT: passed as is
+    # CHOICE_SWEEP: handled by the sweeper
     value_type: Optional[ValueType]
+
+    # The parsed value (component after the =).
+    # Can be a string, quoted string, int, float, bool list and dict
     _value: ParsedElementType
 
+    # When updating a config group option, the first package
     pkg1: Optional[str] = None
+    # When updating a config group, the second package (used when renaming a package)
     pkg2: Optional[str] = None
 
     # Input line used to construct this
     input_line: Optional[str] = None
 
     def is_delete(self) -> bool:
+        """
+        :return: True if this override represents a deletion of a config value or config group option
+        """
         return self.type == OverrideType.DEL
 
     def is_add(self) -> bool:
+        """
+        :return: True if this override represents an addition of a config value or config group option
+        """
         return self.type == OverrideType.ADD
 
     def get_source_package(self) -> Optional[str]:
@@ -106,6 +122,9 @@ class Override:
             return value
 
     def value(self) -> Optional[ElementType]:
+        """
+        :return: the value. replaces Quoted strings by regular strings
+        """
         return Override._convert_value(self._value)
 
     def choices_as_strings(self) -> List[str]:

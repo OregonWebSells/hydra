@@ -26,7 +26,7 @@ from hydra_plugins.hydra_nevergrad_sweeper.core import CommandlineSpec
     ],
 )
 def test_commandline_spec_parse(string: str, expected: CommandlineSpec) -> None:
-    param = CommandlineSpec.parse_rule(string)
+    param = CommandlineSpec.parse(string)
     for attr, value in asdict(expected).items():
         assert getattr(param, attr) == value, f"Wrong value for {attr}"
     # the following equality fails for unknown reasons (only if running all tests)
