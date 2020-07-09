@@ -110,7 +110,7 @@ def test_find(
         include_dirs=include_dirs,
         scan_exclude=scan_exclude,
     )
-    assert ret == expected
+    assert set(ret) == set(expected)
 
 
 @pytest.mark.parametrize(  # type: ignore
