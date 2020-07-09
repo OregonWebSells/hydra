@@ -5,7 +5,7 @@ import pathlib
 import pkg_resources
 from setuptools import find_packages, setup
 
-from build_helpers import (
+from build_helpers.build_helpers import (
     ANTLRCommand,
     BuildPyCommand,
     CleanCommand,

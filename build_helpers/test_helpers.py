@@ -1,12 +1,13 @@
+# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import os.path
 from typing import List
 
 import pytest
 
-from build_helpers import find, matches
+from build_helpers.build_helpers import find, matches
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "path,include_files,include_dirs,excludes,scan_exclude,expected",
     [
         pytest.param("test_files", [], [], [], [], [], id="none"),
@@ -59,7 +60,7 @@ from build_helpers import find, matches
             [],
             ["^.*/junk.txt$"],
             [],
-            ["a/b/file2.txt", "a/b/file1.txt", "c/file2.txt", "c/file1.txt",],
+            ["a/b/file2.txt", "a/b/file1.txt", "c/file2.txt", "c/file1.txt"],
             id="no_junk",
         ),
         pytest.param(
@@ -71,7 +72,7 @@ from build_helpers import find, matches
             ["a/b/junk.txt", "c/junk.txt"],
             id="junk_only",
         ),
-        pytest.param("test_files", [".*"], [], ["^a$"], [], ["a"], id="exact_a"),
+        pytest.param("test_files", [], ["^a$"], [], [], ["a"], id="exact_a"),
         pytest.param(
             "test_files",
             [],
@@ -90,7 +91,7 @@ def test_find(
     excludes: List[str],
     scan_exclude: List[str],
     expected: List[str],
-):
+) -> None:
     basedir = os.path.normpath(os.path.dirname(__file__))
     path = os.path.join(basedir, "test_files")
     ret = find(
@@ -103,7 +104,7 @@ def test_find(
     assert ret == expected
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "patterns,query,expected",
     [
         (["^a/.*"], "a/", True),

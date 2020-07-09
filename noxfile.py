@@ -227,7 +227,8 @@ def lint(session):
         session.chdir(BASE)
 
     session.run(*_black_cmd(), silent=SILENT)
-    skiplist = apps + ["plugins", ".nox"]
+
+    skiplist = apps + [".git", "website", "plugins", ".nox", "hydra/grammar/gen"]
     isort = _isort_cmd() + [f"--skip={skip}" for skip in skiplist]
 
     session.run(*isort, silent=SILENT)
