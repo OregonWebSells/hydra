@@ -2,8 +2,8 @@
 grammar Override;
 
 override: (
-      key '=' value?                              // key=value
-    | '~' key ('=' value?)?                     // ~key | ~key=value
+      key '=' value?                             // key=value
+    | '~' key ('=' value?)?                      // ~key | ~key=value
     | '+' key '=' value?                         // +key= | +key=value
 ) EOF;
 
@@ -52,19 +52,24 @@ dictValue: '{' (ID ':' element (',' ID ':' element)*)? '}';
 listValue: '[' (element(',' element)*)? ']';
 
 // Types
-INT: [+-]?('0' | [1-9][0-9_]*);
-// does not currently support scientific notation. can be added later
-fragment NAN: [Nn][Aa][Nn];
-fragment INF: [Ii][Nn][Ff];
-FLOAT: ([+-]?([0-9_]+ '.' [0-9_]+ | INF)|NAN);
+fragment DIGIT: [0-9_];
+fragment NZ_DIGIT: [1-9];
+fragment INT_PART: DIGIT+;
+fragment FRACTION: '.' DIGIT+;
+fragment POINT_FLOAT: INT_PART? FRACTION | INT_PART '.';
+fragment EXPONENT: [eE] [+-]? DIGIT+;
+fragment EXPONENT_FLOAT: ( INT_PART | POINT_FLOAT) EXPONENT;
+FLOAT: [-]?(POINT_FLOAT | EXPONENT_FLOAT | [Ii][Nn][Ff] | [Nn][Aa][Nn]);
+INT: [-]? ('0' | (NZ_DIGIT DIGIT*));
 
-fragment TRUE: [Tt][Rr][Uu][Ee];
-fragment FALSE: [Ff][Aa][Ll][Ss][Ee];
-BOOL: TRUE|FALSE;
+BOOL:
+      [Tt][Rr][Uu][Ee]      // TRUE
+    | [Ff][Aa][Ll][Ss][Ee]; // FALSE
 
 NULL: [Nn][Uu][Ll][Ll];
 
-ID : [a-zA-Z0-9_]+;
+fragment CHAR: [a-zA-Z];
+ID : (CHAR|'_') (CHAR|DIGIT|'_')*;
 DOT_PATH: ID ('.' ID)+;
 
 WS: (' ' | '\t')+ -> channel(HIDDEN);

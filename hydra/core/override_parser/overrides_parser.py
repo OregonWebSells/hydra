@@ -330,8 +330,6 @@ class CLIVisitor(OverrideVisitor):  # type: ignore
                 child = child.getChild(0)
                 if child.symbol.type == OverrideLexer.INT:
                     ret = int(child.symbol.text)
-                elif child.symbol.type == OverrideLexer.INT:
-                    ret = int(child.symbol.text)
                 elif child.symbol.type == OverrideLexer.FLOAT:
                     ret = float(child.symbol.text)
                 elif child.symbol.type == OverrideLexer.BOOL:

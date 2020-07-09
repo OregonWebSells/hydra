@@ -71,32 +71,30 @@ from hydra.errors import HydraException
             id="value:null:quoted",
         ),
         # int
-        pytest.param("0", 0, id="value:int"),
-        pytest.param("+0", 0, id="value:int"),
-        pytest.param("-0", 0, id="value:int"),
-        pytest.param("-1", -1, id="value:int"),
-        pytest.param("+1", 1, id="value:int"),
-        pytest.param("10_0", 100, id="value:int"),
+        pytest.param("0", 0, id="value:int:zero"),
+        pytest.param("-1", -1, id="value:int:neg"),
+        pytest.param("1", 1, id="value:int:pos"),
+        pytest.param("10_0", 100, id="value:int:underscore"),
         pytest.param(
             "'100'", QuotedString(text="100", quote=Quote.single), id="value:int:quoted"
         ),
         # float
-        pytest.param("0.0", 0.0, id="value:float"),
-        pytest.param("0.51", 0.51, id="value:float"),
-        pytest.param("3.14", 3.14, id="value:float"),
-        pytest.param("-3.14", -3.14, id="value:float"),
-        pytest.param("+3.14", 3.14, id="value:float"),
-        pytest.param("3.1_4", 3.14, id="value:float"),
+        pytest.param("0.0", 0.0, id="value:float:zero"),
+        pytest.param("0.51", 0.51, id="value:float:positive"),
+        pytest.param("-3.14", -3.14, id="value:float:negative"),
+        pytest.param("3.1_4", 3.14, id="value:float:underscore"),
         pytest.param(
             "'3.14'",
             QuotedString(text="3.14", quote=Quote.single),
             id="value:float:quoted",
         ),
-        pytest.param("inf", math.inf, id="value:float:constant"),
-        pytest.param("INF", math.inf, id="value:float:constant"),
-        pytest.param("-inf", -math.inf, id="value:float:constant"),
-        pytest.param("nan", math.nan, id="value:float:constant"),
-        pytest.param("NaN", math.nan, id="value:float:constant"),
+        pytest.param("10e0", 10.0, id="value:float:exp"),
+        pytest.param("-10e1", -100.0, id="value:float:exp:neg"),
+        pytest.param("inf", math.inf, id="value:float:inf"),
+        pytest.param("INF", math.inf, id="value:float:inf"),
+        pytest.param("-inf", -math.inf, id="value:float:inf:neg"),
+        pytest.param("nan", math.nan, id="value:float:nan"),
+        pytest.param("NaN", math.nan, id="value:float:nan"),
         pytest.param(
             "'nan'",
             QuotedString(text="nan", quote=Quote.single),
@@ -130,7 +128,7 @@ from hydra.errors import HydraException
 def test_element(value: str, expected: Any) -> None:
     ret = OverridesParser.parse_rule(value, "element")
     if isinstance(ret, float) and isinstance(expected, float):
-        assert math.isnan(ret) and math.isnan(expected) or ret == expected
+        assert ret == expected or math.isnan(ret) and math.isnan(expected)
     else:
         assert ret == expected
 
