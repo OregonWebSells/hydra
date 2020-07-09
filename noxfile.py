@@ -285,7 +285,7 @@ def test_core(session, install_cmd):
     session.install("pytest")
 
     if not SKIP_CORE_TESTS:
-        run_pytest(session, "tests", *session.posargs)
+        run_pytest(session, "tests", "build_helpers", *session.posargs)
     else:
         session.log("Skipping Hydra core tests")
 

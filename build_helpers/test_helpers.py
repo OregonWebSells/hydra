@@ -18,9 +18,11 @@ from build_helpers.build_helpers import find, matches
             [],
             [],
             [
+                "a/b/bad_dir/.gitkeep",
                 "a/b/file2.txt",
                 "a/b/file1.txt",
                 "a/b/junk.txt",
+                "c/bad_dir/.gitkeep",
                 "c/file2.txt",
                 "c/file1.txt",
                 "c/junk.txt",
@@ -33,7 +35,7 @@ from build_helpers.build_helpers import find, matches
             [],
             ["^a/.*"],
             [],
-            ["c/file2.txt", "c/file1.txt", "c/junk.txt"],
+            ["c/bad_dir/.gitkeep", "c/file2.txt", "c/file1.txt", "c/junk.txt"],
             id="filter_a",
         ),
         pytest.param(
@@ -42,7 +44,7 @@ from build_helpers.build_helpers import find, matches
             [],
             [],
             [],
-            ["a/b/file2.txt", "a/b/file1.txt", "a/b/junk.txt"],
+            ["a/b/bad_dir/.gitkeep", "a/b/file2.txt", "a/b/file1.txt", "a/b/junk.txt"],
             id="include_a",
         ),
         pytest.param(
@@ -51,7 +53,7 @@ from build_helpers.build_helpers import find, matches
             [],
             [".*/file1\\.txt"],
             [],
-            ["a/b/file2.txt", "a/b/junk.txt"],
+            ["a/b/bad_dir/.gitkeep", "a/b/file2.txt", "a/b/junk.txt"],
             id="include_a,exclude_file1",
         ),
         pytest.param(
@@ -60,7 +62,14 @@ from build_helpers.build_helpers import find, matches
             [],
             ["^.*/junk.txt$"],
             [],
-            ["a/b/file2.txt", "a/b/file1.txt", "c/file2.txt", "c/file1.txt"],
+            [
+                "a/b/bad_dir/.gitkeep",
+                "a/b/file2.txt",
+                "a/b/file1.txt",
+                "c/bad_dir/.gitkeep",
+                "c/file2.txt",
+                "c/file1.txt",
+            ],
             id="no_junk",
         ),
         pytest.param(
