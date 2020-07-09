@@ -250,19 +250,16 @@ class CLIVisitor(OverrideVisitor):  # type: ignore
             key = ctx.getChild(0).getText()
         elif nc > 1:
             key = ctx.getChild(0).getText()
-            assert ctx.getChild(1).symbol.type == OverrideLexer.AT
-            second = ctx.getChild(2)
-            if (
-                isinstance(second, TerminalNode)
-                and second.symbol.type == OverrideLexer.COLON
-            ):
+            if ctx.getChild(1).symbol.text == "@:":
                 pkg1 = None
-                pkg2 = ctx.getChild(3).getText()
-            else:
+                pkg2 = ctx.getChild(2).getText()
+            elif ctx.getChild(1).symbol.text == "@":
                 pkg1 = ctx.getChild(2).getText()
                 if nc > 3:
-                    assert ctx.getChild(3).symbol.type == OverrideLexer.COLON
+                    assert ctx.getChild(3).symbol.text == ":"
                     pkg2 = ctx.getChild(4).getText()
+            else:
+                assert False
 
         else:
             assert False
@@ -274,13 +271,14 @@ class CLIVisitor(OverrideVisitor):  # type: ignore
     ) -> List[ParsedElementType]:
         ret: List[ParsedElementType] = []
         children = ctx.getChildren()
-        assert next(children).symbol.type == OverrideLexer.LOPEN
+        first = next(children)
+        assert isinstance(first, TerminalNode) and first.symbol.text == "["
         while True:
             child = next(children)
             if isinstance(child, TerminalNode):
-                if child.symbol.type == OverrideLexer.COMMA:
+                if child.symbol.text == ",":
                     continue
-                if child.symbol.type == OverrideLexer.LCLOSE:
+                if child.symbol.text == "]":
                     break
             elif isinstance(child, OverrideParser.ElementContext):
                 ret.append(self.visitElement(child))
@@ -294,19 +292,19 @@ class CLIVisitor(OverrideVisitor):  # type: ignore
         ret = {}
         children = ctx.getChildren()
         open = next(children)
-        assert open.symbol.type == OverrideLexer.DOPEN
+        assert isinstance(open, TerminalNode) and open.symbol.text == "{"
         first = True
         while True:
             item = next(children)
-            if item.symbol.type == OverrideLexer.DCLOSE:
+            if item.symbol.text == "}":
                 break
-            if not first and item.symbol.type == OverrideLexer.COMMA:
+            if not first and item.symbol.text == ",":
                 continue
 
             pkey = item.symbol.text
 
             sep = next(children)
-            assert sep.symbol.type == OverrideLexer.COLON
+            assert sep.symbol.text == ":"
 
             value = next(children)
             if isinstance(value, OverrideParser.ElementContext):
@@ -379,10 +377,10 @@ class CLIVisitor(OverrideVisitor):  # type: ignore
         children = ctx.getChildren()
         first_node = next(children)
         if isinstance(first_node, TerminalNode):
-            symbol_type = first_node.symbol.type
-            if symbol_type == OverrideLexer.PLUS:
+            symbol_text = first_node.symbol.text
+            if symbol_text == "+":
                 override_type = OverrideType.ADD
-            elif symbol_type == OverrideLexer.TILDE:
+            elif symbol_text == "~":
                 override_type = OverrideType.DEL
             else:
                 assert False
@@ -401,7 +399,7 @@ class CLIVisitor(OverrideVisitor):  # type: ignore
             value = None
             value_type = None
         else:
-            assert eq_node.symbol.type == OverrideLexer.EQ
+            assert eq_node.symbol.text == "="
             value_node = next(children)
             value = self.visitValue(value_node)
 
@@ -430,7 +428,7 @@ class CLIVisitor(OverrideVisitor):  # type: ignore
         ret: List[ParsedElementType] = []
         for child in ctx.getChildren():
             if isinstance(child, TerminalNode):
-                assert child.symbol.type == OverrideLexer.COMMA
+                assert child.symbol.text == ","
                 continue
             if isinstance(child, OverrideParser.ElementContext):
                 ret.append(self.visitElement(child))

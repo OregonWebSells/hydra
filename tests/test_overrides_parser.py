@@ -269,7 +269,7 @@ def test_choice_sweep_parsing(value: str, expected: Any) -> None:
             "key",
             "foo@",
             pytest.raises(
-                HydraException, match=re.escape("no viable alternative at input 'foo@'")
+                HydraException, match=re.escape("missing {ID, DOT_PATH} at '<EOF>'")
             ),
             id="error:left_overs",
         ),
