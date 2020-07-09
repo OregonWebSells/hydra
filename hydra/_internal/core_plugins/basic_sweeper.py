@@ -83,9 +83,10 @@ class BasicSweeper(Sweeper):
             yield lst[i : i + n]
 
     def initialize_arguments(self, arguments: List[str]) -> None:
-        lists = []
         parser = OverridesParser()
         parsed = parser.parse_overrides(arguments)
+
+        lists = []
         for override in parsed:
             if override.is_sweep_override():
                 sweep_choices = override.choices_as_strings()
