@@ -47,7 +47,8 @@ primitive: WS?(
     | '$'
 )+ WS?;
 
-dictValue: '{' (ID ':' element (',' ID ':' element)*)? '}';
+id_with_ws: WS? ID WS?;
+dictValue: '{' (id_with_ws ':' element (',' id_with_ws ':' element)*)? '}';
 
 listValue: '[' (element(',' element)*)? ']';
 

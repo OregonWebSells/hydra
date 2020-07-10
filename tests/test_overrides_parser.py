@@ -185,6 +185,25 @@ def test_list_value(value: str, expected: Any) -> None:
     assert ret == expected
 
 
+@pytest.mark.parametrize(
+    "prefix", [pytest.param("", id="none"), pytest.param(" ", id="ws")]
+)
+@pytest.mark.parametrize(
+    "suffix", [pytest.param("", id="none"), pytest.param(" ", id="ws")]
+)
+@pytest.mark.parametrize(  # type: ignore
+    "value",
+    [
+        pytest.param("abc", id="abc"),
+        pytest.param("a10", id="a10"),
+        pytest.param("abc_10", id="abc_10"),
+    ],
+)
+def test_id_with_ws(value: str, prefix: str, suffix: str) -> None:
+    ret = OverridesParser.parse_rule(prefix + value + suffix, "id_with_ws")
+    assert ret == value
+
+
 @pytest.mark.parametrize(  # type: ignore
     "value,expected",
     [

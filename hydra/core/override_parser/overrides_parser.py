@@ -233,8 +233,11 @@ class Override:
 
 
 class CLIVisitor(OverrideVisitor):  # type: ignore
+    def visitId_with_ws(self, ctx: OverrideParser.Id_with_wsContext):
+        return ctx.getText().strip()
+
     def visitPackage(self, ctx: OverrideParser.PackageContext) -> str:
-        return ctx.getText()  # type: ignore
+        return ctx.getText()
 
     def visitPackageOrGroup(self, ctx: OverrideParser.PackageOrGroupContext) -> str:
         return ctx.getText()  # type: ignore
@@ -330,12 +333,13 @@ class CLIVisitor(OverrideVisitor):  # type: ignore
         first = True
         while True:
             item = next(children)
-            if item.symbol.text == "}":
-                break
-            if not first and item.symbol.text == ",":
-                continue
+            if isinstance(item, TerminalNode):
+                if item.symbol.text == "}":
+                    break
+                if not first and item.symbol.text == ",":
+                    continue
 
-            pkey = item.symbol.text
+            pkey = self.visitId_with_ws(item)
 
             sep = next(children)
             assert sep.symbol.text == ":"
