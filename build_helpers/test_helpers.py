@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import os.path
+from pathlib import Path
 from typing import List
 
 import pytest
@@ -110,7 +111,10 @@ def test_find(
         include_dirs=include_dirs,
         scan_exclude=scan_exclude,
     )
-    assert set(ret) == set(expected)
+
+    ret = set([str(Path(x)) for x in ret])
+    expected = set([str(Path(x)) for x in expected])
+    assert ret == expected
 
 
 @pytest.mark.parametrize(  # type: ignore
