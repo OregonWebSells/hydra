@@ -266,6 +266,40 @@ class CLIVisitor(OverrideVisitor):  # type: ignore
 
         return Key(key_or_group=key, pkg1=pkg1, pkg2=pkg2)
 
+    def visitPrimitive(self, ctx: OverrideParser.PrimitiveContext):
+        def is_ws(c) -> bool:
+            return isinstance(c, TerminalNode) and c.symbol.type == OverrideLexer.WS
+
+        first_idx = 0
+        last_idx = ctx.getChildCount()
+        # skip first if whitespace
+        if is_ws(ctx.getChild(0)):
+            first_idx = 1
+        if is_ws(ctx.getChild(-1)):
+            last_idx = last_idx - 1
+        num = last_idx - first_idx
+        if num > 1:
+            ret = ctx.getText().strip()
+        else:
+            node = ctx.getChild(first_idx)
+            if node.symbol.type in (OverrideLexer.ID, OverrideLexer.INTERPOLATION):
+                ret = node.symbol.text
+            elif node.symbol.type == OverrideLexer.INT:
+                ret = int(node.symbol.text)
+            elif node.symbol.type == OverrideLexer.FLOAT:
+                ret = float(node.symbol.text)
+            elif node.symbol.type == OverrideLexer.NULL:
+                ret = None
+            elif node.symbol.type == OverrideLexer.BOOL:
+                text = node.getText().lower()
+                if text == "true":
+                    ret = True
+                elif text == "false":
+                    ret = False
+                else:
+                    assert False
+        return ret
+
     def visitListValue(
         self, ctx: OverrideParser.ListValueContext
     ) -> List[ParsedElementType]:
@@ -324,30 +358,9 @@ class CLIVisitor(OverrideVisitor):  # type: ignore
         elif isinstance(child, OverrideParser.DictValueContext):
             ret = self.visitDictValue(child)
         elif isinstance(child, OverrideParser.PrimitiveContext):
-            if child.getChildCount() == 1 and isinstance(
-                child.getChild(0), TerminalNode
-            ):
-                child = child.getChild(0)
-                if child.symbol.type == OverrideLexer.INT:
-                    ret = int(child.symbol.text)
-                elif child.symbol.type == OverrideLexer.FLOAT:
-                    ret = float(child.symbol.text)
-                elif child.symbol.type == OverrideLexer.BOOL:
-                    text = child.getText().lower()
-                    if text == "true":
-                        ret = True
-                    elif text == "false":
-                        ret = False
-                    else:
-                        assert False
-                else:
-                    ret = child.getText()
-            else:
-                ret = child.getText()
+            return self.visitPrimitive(child)
         elif isinstance(child, TerminalNode):
-            if child.symbol.type == OverrideLexer.NULL:
-                ret = None
-            elif child.symbol.type == OverrideLexer.QUOTED_VALUE:
+            if child.symbol.type == OverrideLexer.QUOTED_VALUE:
                 text = child.getText()
                 qc = text[0]
                 if qc == "'":

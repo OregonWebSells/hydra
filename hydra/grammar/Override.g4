@@ -24,15 +24,15 @@ package: (ID | DOT_PATH);
 packageOrGroup: package | ID ('/' ID)+;
 
 element:
-      NULL
-    | QUOTED_VALUE
+      QUOTED_VALUE
     | primitive
     | listValue
     | dictValue
 ;
 
-primitive: (
+primitive: WS?(
       ID
+    | NULL
     | INT
     | FLOAT
     | BOOL
@@ -45,7 +45,7 @@ primitive: (
     | '+'
     | '.'
     | '$'
-)+;
+)+ WS?;
 
 dictValue: '{' (ID ':' element (',' ID ':' element)*)? '}';
 
@@ -72,7 +72,7 @@ fragment CHAR: [a-zA-Z];
 ID : (CHAR|'_') (CHAR|DIGIT|'_')*;
 DOT_PATH: ID ('.' ID)+;
 
-WS: (' ' | '\t')+ -> channel(HIDDEN);
+WS: (' ' | '\t')+;
 
 QUOTED_VALUE: '\'' .*? '\'' | '"' .*? '"' ;
 

@@ -17,12 +17,24 @@ from hydra.core.override_parser.overrides_parser import (
 from hydra.errors import HydraException
 
 
+def eq(item1: Any, item2: Any) -> bool:
+    if isinstance(item1, float) and isinstance(item2, float):
+        return item1 == item2 or math.isnan(item1) and math.isnan(item2)
+    else:
+        return item1 == item2
+
+
+# element:
+#       QUOTED_VALUE
+#     | primitive
+#     | listValue
+#     | dictValue
 @pytest.mark.parametrize(  # type: ignore
     "value,expected",
     [
-        pytest.param("abc", "abc", id="value:simple"),
-        pytest.param("abc123", "abc123", id="value:simple"),
-        pytest.param("abc-123", "abc-123", id="value:simple"),
+        pytest.param("abc", "abc", id="value:id"),
+        pytest.param("abc123", "abc123", id="value:idint"),
+        pytest.param("abc-123", "abc-123", id="value:id-int"),
         pytest.param(
             "'\t []{},=+~'",
             QuotedString(text="\t []{},=+~", quote=Quote.single),
@@ -71,30 +83,18 @@ from hydra.errors import HydraException
             id="value:null:quoted",
         ),
         # int
-        pytest.param("0", 0, id="value:int:zero"),
-        pytest.param("-1", -1, id="value:int:neg"),
         pytest.param("1", 1, id="value:int:pos"),
-        pytest.param("10_0", 100, id="value:int:underscore"),
         pytest.param(
             "'100'", QuotedString(text="100", quote=Quote.single), id="value:int:quoted"
         ),
         # float
-        pytest.param("0.0", 0.0, id="value:float:zero"),
         pytest.param("0.51", 0.51, id="value:float:positive"),
-        pytest.param("-3.14", -3.14, id="value:float:negative"),
-        pytest.param("3.1_4", 3.14, id="value:float:underscore"),
         pytest.param(
             "'3.14'",
             QuotedString(text="3.14", quote=Quote.single),
             id="value:float:quoted",
         ),
         pytest.param("10e0", 10.0, id="value:float:exp"),
-        pytest.param("-10e1", -100.0, id="value:float:exp:neg"),
-        pytest.param("inf", math.inf, id="value:float:inf"),
-        pytest.param("INF", math.inf, id="value:float:inf"),
-        pytest.param("-inf", -math.inf, id="value:float:inf:neg"),
-        pytest.param("nan", math.nan, id="value:float:nan"),
-        pytest.param("NaN", math.nan, id="value:float:nan"),
         pytest.param(
             "'nan'",
             QuotedString(text="nan", quote=Quote.single),
@@ -112,7 +112,6 @@ from hydra.errors import HydraException
         ),
         # bool
         pytest.param("true", True, id="value:bool"),
-        pytest.param("false", False, id="value:bool"),
         pytest.param(
             "'true'",
             QuotedString(text="true", quote=Quote.single),
@@ -127,22 +126,20 @@ from hydra.errors import HydraException
 )
 def test_element(value: str, expected: Any) -> None:
     ret = OverridesParser.parse_rule(value, "element")
-    if isinstance(ret, float) and isinstance(expected, float):
-        assert ret == expected or math.isnan(ret) and math.isnan(expected)
-    else:
-        assert ret == expected
+    assert eq(ret, expected)
 
 
 @pytest.mark.parametrize(  # type: ignore
     "value,expected",
     [
         pytest.param("abc", "abc", id="value:simple"),
-        pytest.param("abc ", "abc", id="value:simple"),
-        pytest.param(" abc", "abc", id="value:simple"),
+        pytest.param("abc ", "abc", id="value:simple_ws"),
+        pytest.param(" abc", "abc", id="ws_value:simple"),
         pytest.param("[1,2,3]", [1, 2, 3], id="value:list"),
-        pytest.param("[1, 2, 3]", [1, 2, 3], id="value:list"),
+        pytest.param("[1 ]", [1], id="value:list1_ws"),
+        pytest.param("[1, 2, 3]", [1, 2, 3], id="value:list_ws"),
         pytest.param("1,2,3", [1, 2, 3], id="sweep:int"),
-        pytest.param("1, 2, 3", [1, 2, 3], id="sweep:int"),
+        pytest.param("1, 2, 3", [1, 2, 3], id="sweep:int_ws"),
         pytest.param(
             "${a}, ${b}, ${c}", ["${a}", "${b}", "${c}"], id="sweep:interpolations"
         ),
@@ -231,7 +228,7 @@ def test_choice_sweep_parsing(value: str, expected: Any) -> None:
     [
         # errors
         pytest.param(
-            "value",
+            "primitive",
             " ",
             pytest.raises(
                 HydraException, match=re.escape("mismatched input '<EOF>' expecting"),
@@ -337,6 +334,67 @@ def test_package_or_group(value: str, expected: Any) -> None:
 def test_key(value: str, expected: Any) -> None:
     ret = OverridesParser.parse_rule(value, "key")
     assert ret == expected
+
+
+@pytest.mark.parametrize(
+    "prefix", [pytest.param("", id="none"), pytest.param(" ", id="ws")]
+)
+@pytest.mark.parametrize(
+    "suffix", [pytest.param("", id="none"), pytest.param(" ", id="ws")]
+)
+@pytest.mark.parametrize(  # type: ignore
+    "value,expected",
+    [
+        pytest.param("a", "a", id="a"),
+        pytest.param("abc10", "abc10", id="abc10"),
+        pytest.param("10", 10, id="10"),
+        pytest.param("10abc", "10abc", id="10abc"),
+        pytest.param("abc-cde", "abc-cde", id="abc-cde"),
+        pytest.param("true", True, id="primitive:bool"),
+        pytest.param("True", True, id="primitive:bool"),
+        pytest.param("TRUE", True, id="primitive:bool"),
+        pytest.param("trUe", True, id="primitive:bool"),
+        pytest.param("false", False, id="primitive:bool"),
+        pytest.param("False", False, id="primitive:bool"),
+        pytest.param("FALSE", False, id="primitive:bool"),
+        pytest.param("faLse", False, id="primitive:bool"),
+        pytest.param("abc", "abc", id="primitive:id"),
+        pytest.param("abc123", "abc123", id="primitive:idint"),
+        pytest.param("abc-123", "abc-123", id="primitive:id-int"),
+        pytest.param("xyz_${a.b.c}", "xyz_${a.b.c}", id="primitive:str_interpolation"),
+        pytest.param(
+            "${env:USER,root}", "${env:USER,root}", id="primitive:custom_interpolation"
+        ),
+        pytest.param(
+            "c:\\foo\\a-b.txt", "c:\\foo\\a-b.txt", id="primitive:windows_path"
+        ),
+        # null
+        pytest.param("null", None, id="primitive:null"),
+        # int
+        pytest.param("0", 0, id="primitive:int:zero"),
+        pytest.param("-1", -1, id="primitive:int:neg"),
+        pytest.param("1", 1, id="primitive:int:pos"),
+        pytest.param("10_0", 100, id="primitive:int:underscore"),
+        # float
+        pytest.param("0.0", 0.0, id="primitive:float:zero"),
+        pytest.param("0.51", 0.51, id="primitive:float:positive"),
+        pytest.param("-3.14", -3.14, id="primitive:float:negative"),
+        pytest.param("3.1_4", 3.14, id="primitive:float:underscore"),
+        pytest.param("10e0", 10.0, id="primitive:float:exp"),
+        pytest.param("-10e1", -100.0, id="primitive:float:exp:neg"),
+        pytest.param("inf", math.inf, id="primitive:float:inf"),
+        pytest.param("INF", math.inf, id="primitive:float:inf"),
+        pytest.param("-inf", -math.inf, id="primitive:float:inf:neg"),
+        pytest.param("nan", math.nan, id="primitive:float:nan"),
+        pytest.param("NaN", math.nan, id="primitive:float:nan"),
+        # bool
+        pytest.param("true", True, id="primitive:bool"),
+        pytest.param("false", False, id="primitive:bool"),
+    ],
+)
+def test_primitive(value: str, prefix: str, suffix: str, expected: Any) -> None:
+    ret = OverridesParser.parse_rule(prefix + value + suffix, "primitive")
+    assert eq(ret, expected)
 
 
 @pytest.mark.parametrize(  # type: ignore
