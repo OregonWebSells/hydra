@@ -301,6 +301,8 @@ class CLIVisitor(OverrideVisitor):  # type: ignore
                     ret = False
                 else:
                     assert False
+            else:
+                return node.getText()
         return ret
 
     def visitListValue(

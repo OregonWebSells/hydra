@@ -122,6 +122,7 @@ def eq(item1: Any, item2: Any) -> bool:
             QuotedString(text="false", quote=Quote.single),
             id="value:bool:quoted",
         ),
+        pytest.param(".", ".", id="value:dot"),
     ],
 )
 def test_element(value: str, expected: Any) -> None:
