@@ -112,9 +112,9 @@ def test_find(
         scan_exclude=scan_exclude,
     )
 
-    ret = set([str(Path(x)) for x in ret])
-    expected = set([str(Path(x)) for x in expected])
-    assert ret == expected
+    ret_set = set([str(Path(x)) for x in ret])
+    expected_set = set([str(Path(x)) for x in expected])
+    assert ret_set == expected_set
 
 
 @pytest.mark.parametrize(  # type: ignore

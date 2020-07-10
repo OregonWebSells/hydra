@@ -21,7 +21,7 @@ def eq(item1: Any, item2: Any) -> bool:
     if isinstance(item1, float) and isinstance(item2, float):
         return item1 == item2 or math.isnan(item1) and math.isnan(item2)
     else:
-        return item1 == item2
+        return item1 == item2  # type: ignore
 
 
 # element:
@@ -186,10 +186,10 @@ def test_list_value(value: str, expected: Any) -> None:
     assert ret == expected
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "prefix", [pytest.param("", id="none"), pytest.param(" ", id="ws")]
 )
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "suffix", [pytest.param("", id="none"), pytest.param(" ", id="ws")]
 )
 @pytest.mark.parametrize(  # type: ignore
@@ -356,10 +356,10 @@ def test_key(value: str, expected: Any) -> None:
     assert ret == expected
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "prefix", [pytest.param("", id="none"), pytest.param(" ", id="ws")]
 )
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore
     "suffix", [pytest.param("", id="none"), pytest.param(" ", id="ws")]
 )
 @pytest.mark.parametrize(  # type: ignore

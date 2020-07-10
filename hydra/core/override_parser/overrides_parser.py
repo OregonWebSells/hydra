@@ -233,11 +233,11 @@ class Override:
 
 
 class CLIVisitor(OverrideVisitor):  # type: ignore
-    def visitId_with_ws(self, ctx: OverrideParser.Id_with_wsContext):
-        return ctx.getText().strip()
+    def visitId_with_ws(self, ctx: OverrideParser.Id_with_wsContext) -> str:
+        return ctx.getText().strip()  # type: ignore
 
     def visitPackage(self, ctx: OverrideParser.PackageContext) -> str:
-        return ctx.getText()
+        return ctx.getText()  # type: ignore
 
     def visitPackageOrGroup(self, ctx: OverrideParser.PackageOrGroupContext) -> str:
         return ctx.getText()  # type: ignore
@@ -269,8 +269,13 @@ class CLIVisitor(OverrideVisitor):  # type: ignore
 
         return Key(key_or_group=key, pkg1=pkg1, pkg2=pkg2)
 
-    def visitPrimitive(self, ctx: OverrideParser.PrimitiveContext):
-        def is_ws(c) -> bool:
+    def visitPrimitive(
+        self, ctx: OverrideParser.PrimitiveContext
+    ) -> Optional[Union[int, bool, float, str]]:
+
+        ret: Optional[Union[int, bool, float, str]]
+
+        def is_ws(c: Any) -> bool:
             return isinstance(c, TerminalNode) and c.symbol.type == OverrideLexer.WS
 
         first_idx = 0
@@ -302,7 +307,7 @@ class CLIVisitor(OverrideVisitor):  # type: ignore
                 else:
                     assert False
             else:
-                return node.getText()
+                return node.getText()  # type: ignore
         return ret
 
     def visitListValue(
